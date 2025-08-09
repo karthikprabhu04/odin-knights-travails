@@ -4,37 +4,51 @@ class Tree {
     this.graph = new Array(8).fill(0).map(() => new Array(8).fill(0));
     // Edit graph to find pathway
     this.path = this.findPath(start, end);
+    console.log("Shortest path:", this.path);
   }
 
-  // Build binary search tree
+
   findPath(start, end) {
-    // Update graph with start filled
-    let currCoordinate = start;
-    this.graph[currCoordinate[0]][currCoordinate[1]] = 1;
+    // Mark start visited
+    this.graph[start[0]][start[1]] = 1;
 
-    // Find valid move options
-    let moveOptions = this.findPossibleMoves(start);
-    
-    // Create queue and push move options here
-    const queue = [];
-    moveOptions.forEach((move) => queue.push(move));
+    // Parents map to reconstruct path
+    const parents = {};
+    parents[`${start[0]}, ${start[1]}`] = null;
 
-    while (!(currCoordinate[0] === end[0] && currCoordinate[1] === end[1])) {
-      // Take first item
-      currCoordinate = queue.shift();
+    // Start queue
+    const queue = [start];
 
-      // Update graph
-      this.graph[currCoordinate[0]][currCoordinate[1]] = 1;
+    while (queue.length > 0) {
+      let currCoordinate = queue.shift();
 
-      // Find valid move options and push to queue
-      moveOptions = this.findPossibleMoves(currCoordinate)
-      moveOptions.forEach((move) => queue.push(move))
+      // Check if reached end
+      if (currCoordinate[0] === end[0] && currCoordinate[1] === end[1]) {
+        let path = [];
+        let step = `${currCoordinate[0]},${currCoordinate[1]}`;
 
-      console.log(currCoordinate, queue.length)
+        while (step !== null && step !== undefined) {
+          const [y, x] = step.split(',').map(Number);
+          path.push([y, x]);
+          step = parents[step];
+        }
+
+        return path.reverse();
+      }
+      
+      // Find valid moves from current position
+      let moveOptions = this.findPossibleMoves(currCoordinate);
+  
+      moveOptions.forEach((move) => {
+        let key =  `${move[0]},${move[1]}`;
+        if (!parents.hasOwnProperty(key)) {
+            queue.push(move);
+            parents[key] = `${currCoordinate[0]},${currCoordinate[1]}`;
+            this.graph[move[0]][move[1]] = 1; // mark visited
+          }
+        });
     }
 
-    console.log("FOUND", currCoordinate)
-    console.log(this.graph);
     return null;
   }
 
